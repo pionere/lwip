@@ -38,6 +38,7 @@
  */
 
 #include "lwip/opt.h"
+#include "ZeroTierConstants.h"
 
 #if LWIP_SOCKET /* don't build if not configured for use in lwipopts.h */
 
@@ -281,6 +282,7 @@ static struct lwip_select_cb *select_cb_list;
 #define sock_set_errno(sk, e) do { \
   const int sockerr = (e); \
   set_errno(sockerr); \
+  zts_errno = sockerr; \
 } while (0)
 
 /* Forward declaration of some functions */

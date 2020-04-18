@@ -160,6 +160,21 @@ typedef struct ip6_addr ip6_addr_t;
 #define ip6_addr_netcmp(addr1, addr2) (ip6_addr_netcmp_zoneless((addr1), (addr2)) && \
                                        ip6_addr_cmp_zone((addr1), (addr2)))
 
+/* Determine if an address *could* be a ZeroTier 6PLANE/Ad-hoc address */
+#define ip6_addr_is_zt_6plane(addr1) (((addr1)->addr[0] & PP_HTONL(0xff000000UL)) == PP_HTONL(0xfc000000UL))
+
+/* Compare first 40 bits of address (ff + first 32 bits of nwid XOR'd with second 32 bits of nwid) */
+#define ip6_addr_6plane_cmp(addr1, addr2) (((addr1)->addr[0] == (addr2)->addr[0]) && \
+                                    ((addr1)->addr[1] & PP_HTONL(0xff000000UL)) == ((addr2)->addr[1] & PP_HTONL(0xff000000UL)))
+
+/* Determine if an address *could* be an RFC4193 address */
+#define ip6_addr_is_zt_rfc4193(addr1) (((addr1)->addr[0] & PP_HTONL(0xff000000UL)) == PP_HTONL(0xfd000000UL))
+
+/* Compare first 72 bits of address (fd + 64 bits of nwid) */
+#define ip6_addr_rfc4193_cmp(addr1, addr2) (((addr1)->addr[0] == (addr2)->addr[0]) && \
+                                    ((addr1)->addr[1] == (addr2)->addr[1]) && \
+                                    ((addr1)->addr[2] & PP_HTONL(0xff000000UL)) == ((addr2)->addr[2] & PP_HTONL(0xff000000UL)))
+
 /* Exact-host comparison *after* ip6_addr_netcmp() succeeded, for efficiency. */
 #define ip6_addr_nethostcmp(addr1, addr2) (((addr1)->addr[2] == (addr2)->addr[2]) && \
                                            ((addr1)->addr[3] == (addr2)->addr[3]))

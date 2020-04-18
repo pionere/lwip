@@ -1644,9 +1644,20 @@ nd6_is_prefix_in_netif(const ip6_addr_t *ip6addr, struct netif *netif)
    * addresses (from autoconfiguration) have no implied subnet assignment, and
    * are thus effectively /128 assignments. See RFC 5942 for more on this. */
   for (i = 0; i < LWIP_IPV6_NUM_ADDRESSES; i++) {
-    if (ip6_addr_isvalid(netif_ip6_addr_state(netif, i)) &&
+    /*if (ip6_addr_isvalid(netif_ip6_addr_state(netif, i)) &&
         netif_ip6_addr_isstatic(netif, i) &&
-        ip6_addr_netcmp(ip6addr, netif_ip6_addr(netif, i))) {
+        ip6_addr_netcmp(ip6addr, netif_ip6_addr(netif, i))) {*/
+      int prefix_match = 0;
+    if (ip6_addr_is_zt_6plane(ip6addr)) {
+      prefix_match = ip6_addr_6plane_cmp(ip6addr, netif_ip6_addr(netif, i));
+    }
+    if (ip6_addr_is_zt_rfc4193(ip6addr)) {
+      prefix_match = ip6_addr_rfc4193_cmp(ip6addr, netif_ip6_addr(netif, i));
+    }
+    if (!prefix_match) {
+      prefix_match = ip6_addr_netcmp(ip6addr, netif_ip6_addr(netif, i));
+    }
+    if (ip6_addr_isvalid(netif_ip6_addr_state(netif, i)) && prefix_match) {
       return 1;
     }
   }
