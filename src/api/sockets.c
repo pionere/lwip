@@ -38,7 +38,8 @@
  */
 
 #include "lwip/opt.h"
-#include "ZeroTierConstants.h"
+
+extern int zts_errno;
 
 #if LWIP_SOCKET /* don't build if not configured for use in lwipopts.h */
 
