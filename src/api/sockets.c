@@ -37,7 +37,6 @@
  *
  */
 //#include <chrono>
-#include <cstdarg>
 
 #include "lwip/opt.h"
 
@@ -60,9 +59,9 @@
 #include "lwip/inet_chksum.h"
 #endif
 
-#if LWIP_COMPAT_SOCKETS == 2 && LWIP_POSIX_SOCKETS_IO_NAMES
+//#if LWIP_COMPAT_SOCKETS == 2 && LWIP_POSIX_SOCKETS_IO_NAMES
 #include <stdarg.h>
-#endif
+//#endif
 
 #include <string.h>
 
