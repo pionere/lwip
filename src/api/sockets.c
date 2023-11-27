@@ -1614,7 +1614,7 @@ lwip_sendto(int s, const void *data, size_t size, int flags,
   u16_t remote_port;
   struct netbuf buf;
 
-LogDebugF("lwip_sendto called")
+LogDebugF("lwip_sendto called");
   sock = get_socket(s);
   if (!sock) {
     return -1;
