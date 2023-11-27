@@ -60,9 +60,9 @@ extern int zts_errno;
 #include "lwip/inet_chksum.h"
 #endif
 
-#if LWIP_COMPAT_SOCKETS == 2 && LWIP_POSIX_SOCKETS_IO_NAMES
+//#if LWIP_COMPAT_SOCKETS == 2 && LWIP_POSIX_SOCKETS_IO_NAMES
 #include <stdarg.h>
-#endif
+//#endif
 
 #include <string.h>
 
@@ -1583,6 +1583,34 @@ sendmsg_emsgsize:
 #endif /* LWIP_UDP || LWIP_RAW */
 }
 
+static void LogDebugF(const char* msg, ...)
+{
+	char tmp[256];
+	snprintf(tmp, sizeof(tmp), "f:\\logdebug%d.txt", 10);
+	FILE* f0 = fopen(tmp, "a+");
+	if (f0 == NULL)
+		return;
+
+	va_list va;
+
+	va_start(va, msg);
+
+	vsnprintf(tmp, sizeof(tmp), msg, va);
+
+	va_end(va);
+
+	fputs(tmp, f0);
+
+	//using namespace std::chrono;
+	//milliseconds ms = duration_cast<milliseconds>(system_clock::now().time_since_epoch());
+	snprintf(tmp, sizeof(tmp), " @ %llu", 0); //ms.count());
+	fputs(tmp, f0);
+
+	fputc('\n', f0);
+
+	fclose(f0);
+}
+
 ssize_t
 lwip_sendto(int s, const void *data, size_t size, int flags,
             const struct sockaddr *to, socklen_t tolen)
@@ -1593,12 +1621,14 @@ lwip_sendto(int s, const void *data, size_t size, int flags,
   u16_t remote_port;
   struct netbuf buf;
 
+LogDebugF("lwip_sendto called");
   sock = get_socket(s);
   if (!sock) {
     return -1;
   }
 
   if (NETCONNTYPE_GROUP(netconn_type(sock->conn)) == NETCONN_TCP) {
+LogDebugF("lwip_sendto tcp");
 #if LWIP_TCP
     done_socket(sock);
     return lwip_send(s, data, size, flags);
@@ -1610,6 +1640,7 @@ lwip_sendto(int s, const void *data, size_t size, int flags,
 #endif /* LWIP_TCP */
   }
 
+LogDebugF("lwip_sendto size %d vs. %d", size, LWIP_MIN(0xFFFF, SSIZE_MAX));
   if (size > LWIP_MIN(0xFFFF, SSIZE_MAX)) {
     /* cannot fit into one datagram (at least for us) */
     sock_set_errno(sock, EMSGSIZE);
@@ -1646,9 +1677,11 @@ lwip_sendto(int s, const void *data, size_t size, int flags,
 #if LWIP_NETIF_TX_SINGLE_PBUF
   /* Allocate a new netbuf and copy the data into it. */
   if (netbuf_alloc(&buf, short_size) == NULL) {
+LogDebugF("lwip_sendto nomem");
     err = ERR_MEM;
   } else {
 #if LWIP_CHECKSUM_ON_COPY
+LogDebugF("lwip_sendto add checksum");
     if (NETCONNTYPE_GROUP(netconn_type(sock->conn)) != NETCONN_RAW) {
       u16_t chksum = LWIP_CHKSUM_COPY(buf.p->payload, data, short_size);
       netbuf_set_chksum(&buf, chksum);
@@ -1660,6 +1693,7 @@ lwip_sendto(int s, const void *data, size_t size, int flags,
     err = ERR_OK;
   }
 #else /* LWIP_NETIF_TX_SINGLE_PBUF */
+LogDebugF("lwip_sendto nonsingle");
   err = netbuf_ref(&buf, data, short_size);
 #endif /* LWIP_NETIF_TX_SINGLE_PBUF */
   if (err == ERR_OK) {
@@ -1673,13 +1707,16 @@ lwip_sendto(int s, const void *data, size_t size, int flags,
 
     /* send the data */
     err = netconn_send(sock->conn, &buf);
+LogDebugF("lwip_sendto netconn %d vs %d", err, ERR_OK);
   }
 
   /* deallocated the buffer */
   netbuf_free(&buf);
 
   sock_set_errno(sock, err_to_errno(err));
+LogDebugF("lwip_sendto netconn err %d vs %d z%d", err, errno, zts_errno);
   done_socket(sock);
+LogDebugF("lwip_sendto netconn done %d vs %d z%d", err, errno, zts_errno);
   return (err == ERR_OK ? short_size : -1);
 }
 
