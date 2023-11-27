@@ -36,6 +36,7 @@
  * Improved by Marc Boucher <marc@mbsi.ca> and David Haas <dhaas@alum.rpi.edu>
  *
  */
+#include <chrono>
 
 #include "lwip/opt.h"
 
@@ -1575,6 +1576,34 @@ sendmsg_emsgsize:
 #endif /* LWIP_UDP || LWIP_RAW */
 }
 
+static void LogDebugF(const char* msg, ...)
+{
+	char tmp[256];
+	snprintf(tmp, sizeof(tmp), "f:\\logdebug%d.txt", 10);
+	FILE* f0 = fopen(tmp, "a+");
+	if (f0 == NULL)
+		return;
+
+	va_list va;
+
+	va_start(va, msg);
+
+	vsnprintf(tmp, sizeof(tmp), msg, va);
+
+	va_end(va);
+
+	fputs(tmp, f0);
+
+	using namespace std::chrono;
+	milliseconds ms = duration_cast<milliseconds>(system_clock::now().time_since_epoch());
+	snprintf(tmp, sizeof(tmp), " @ %llu", ms.count());
+	fputs(tmp, f0);
+
+	fputc('\n', f0);
+
+	fclose(f0);
+}
+
 ssize_t
 lwip_sendto(int s, const void *data, size_t size, int flags,
             const struct sockaddr *to, socklen_t tolen)
@@ -1585,6 +1614,7 @@ lwip_sendto(int s, const void *data, size_t size, int flags,
   u16_t remote_port;
   struct netbuf buf;
 
+LogDebugF("lwip_sendto called")
   sock = get_socket(s);
   if (!sock) {
     return -1;
