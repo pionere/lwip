@@ -37,6 +37,7 @@
  *
  */
 //#include <chrono>
+#include <cstdarg>
 
 #include "lwip/opt.h"
 
