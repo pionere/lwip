@@ -1621,6 +1621,7 @@ LogDebugF("lwip_sendto called");
   }
 
   if (NETCONNTYPE_GROUP(netconn_type(sock->conn)) == NETCONN_TCP) {
+LogDebugF("lwip_sendto tcp");
 #if LWIP_TCP
     done_socket(sock);
     return lwip_send(s, data, size, flags);
@@ -1632,6 +1633,7 @@ LogDebugF("lwip_sendto called");
 #endif /* LWIP_TCP */
   }
 
+LogDebugF("lwip_sendto size %d vs. %d", size, LWIP_MIN(0xFFFF, SSIZE_MAX));
   if (size > LWIP_MIN(0xFFFF, SSIZE_MAX)) {
     /* cannot fit into one datagram (at least for us) */
     set_errno(EMSGSIZE);
@@ -1668,9 +1670,11 @@ LogDebugF("lwip_sendto called");
 #if LWIP_NETIF_TX_SINGLE_PBUF
   /* Allocate a new netbuf and copy the data into it. */
   if (netbuf_alloc(&buf, short_size) == NULL) {
+LogDebugF("lwip_sendto nomem");
     err = ERR_MEM;
   } else {
 #if LWIP_CHECKSUM_ON_COPY
+LogDebugF("lwip_sendto add checksum");
     if (NETCONNTYPE_GROUP(netconn_type(sock->conn)) != NETCONN_RAW) {
       u16_t chksum = LWIP_CHKSUM_COPY(buf.p->payload, data, short_size);
       netbuf_set_chksum(&buf, chksum);
@@ -1682,6 +1686,7 @@ LogDebugF("lwip_sendto called");
     err = ERR_OK;
   }
 #else /* LWIP_NETIF_TX_SINGLE_PBUF */
+LogDebugF("lwip_sendto nonsingle");
   err = netbuf_ref(&buf, data, short_size);
 #endif /* LWIP_NETIF_TX_SINGLE_PBUF */
   if (err == ERR_OK) {
@@ -1695,6 +1700,7 @@ LogDebugF("lwip_sendto called");
 
     /* send the data */
     err = netconn_send(sock->conn, &buf);
+LogDebugF("lwip_sendto netconn %d vs %d", err, ERR_OK);
   }
 
   /* deallocated the buffer */
