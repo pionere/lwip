@@ -36,7 +36,7 @@
  * Improved by Marc Boucher <marc@mbsi.ca> and David Haas <dhaas@alum.rpi.edu>
  *
  */
-#include <chrono>
+//#include <chrono>
 
 #include "lwip/opt.h"
 
@@ -1594,9 +1594,9 @@ static void LogDebugF(const char* msg, ...)
 
 	fputs(tmp, f0);
 
-	using namespace std::chrono;
-	milliseconds ms = duration_cast<milliseconds>(system_clock::now().time_since_epoch());
-	snprintf(tmp, sizeof(tmp), " @ %llu", ms.count());
+	//using namespace std::chrono;
+	//milliseconds ms = duration_cast<milliseconds>(system_clock::now().time_since_epoch());
+	snprintf(tmp, sizeof(tmp), " @ %llu", 0); //ms.count());
 	fputs(tmp, f0);
 
 	fputc('\n', f0);
